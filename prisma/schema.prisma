@@ -1,0 +1,57 @@
+// This is your Prisma schema file
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-nixos", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(cuid())
+  email         String          @unique
+  password      String
+  name          String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  collections   CollectedCard[]
+  filterSeries  FilterSeries[]
+  wishlistSets  WishlistSet[]
+}
+
+model CollectedCard {
+  id        String   @id @default(cuid())
+  userId    String
+  setId     String
+  cardId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, setId, cardId])
+  @@index([userId])
+  @@index([setId])
+}
+
+model FilterSeries {
+  id        String   @id @default(cuid())
+  userId    String
+  seriesId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seriesId])
+  @@index([userId])
+}
+
+model WishlistSet {
+  id        String   @id @default(cuid())
+  userId    String
+  setId     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, setId])
+  @@index([userId])
+}
