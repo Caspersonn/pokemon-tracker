@@ -5,4 +5,4 @@
 - [ ] Click on pokemon card to show popup with information as; rarity, number, name, pricing (done with api) etc. (optional: card can move based on mouse movements)
 - [ ] Bookmark/like a pokemon card (Vague idea of what this means)
 - [ ] Create a name for the application (UnPulled, CardQuest, etc)
-- [ ] Show newest sets first with date on the right top corner with gray background, format for date should be `Jan 1, 1999`
+- [x] Show newest sets first with date on the right top corner with gray background, format for date should be `Jan 1, 1999`
