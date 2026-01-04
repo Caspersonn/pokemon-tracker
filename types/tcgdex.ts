@@ -11,6 +11,7 @@ export interface CardSet {
     total: number;
     official: number;
   };
+  releaseDate?: string; // ISO date format: YYYY-MM-DD
 }
 
 export interface Card {

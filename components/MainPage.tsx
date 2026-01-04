@@ -72,18 +72,29 @@ export default function MainPage({ sets }: MainPageProps) {
     });
   };
 
-  // Filter sets based on search query and selected series
-  const filteredSets = sets.filter(set => {
-    const matchesSearch = set.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      set.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSeries = selectedSeries.size === 0 || selectedSeries.has(set.seriesId);
-    return matchesSearch && matchesSeries;
-  });
+  // Filter and sort sets based on search query and selected series
+  const filteredSets = sets
+    .filter(set => {
+      const matchesSearch = set.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        set.id.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSeries = selectedSeries.size === 0 || selectedSeries.has(set.seriesId);
+      return matchesSearch && matchesSeries;
+    })
+    .sort((a, b) => {
+      // Sort by release date (newest first)
+      // Sets without release dates go to the end
+      if (!a.releaseDate && !b.releaseDate) return 0;
+      if (!a.releaseDate) return 1;
+      if (!b.releaseDate) return -1;
+
+      // Compare dates in descending order (newest first)
+      return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+    });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           {/* Top row: Title and controls */}
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-6 flex-1">

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import type { CardSet } from '@/types/tcgdex';
 import { getSetProgress, getCollection, type CollectionData } from '@/lib/storage';
 import { formatImageUrl } from '@/lib/image';
+import { formatReleaseDate } from '@/lib/utils';
 
 interface SetGridProps {
   sets: CardSet[];
@@ -46,21 +47,29 @@ export default function SetGrid({ sets }: SetGridProps) {
             href={`/set/${set.id}`}
             className="group bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
           >
-            <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center p-4">
-              {set.logo ? (
-                <div className="relative w-full h-32">
+            <div className="relative aspect-w-16 aspect-h-9 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center p-4">
+              <div className="relative w-full h-32">
+                {set.logo || set.symbol ? (
                   <Image
-                    src={formatImageUrl(set.logo)}
+                    src={formatImageUrl(set.logo || set.symbol || '')}
                     alt={set.name}
                     fill
                     className="object-contain group-hover:scale-110 transition-transform duration-300"
+                    sizes="true"
                   />
-                </div>
-              ) : (
-                <div className="text-4xl font-bold text-gray-400 dark:text-gray-500">
-                  {set.name.charAt(0)}
-                </div>
-              )}
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-4xl font-bold text-gray-400 dark:text-gray-500">
+                      {set.name.charAt(0)}
+                    </div>
+                  </div>
+                )}
+                {set.releaseDate && (
+                  <div className="absolute top-0 right-0 bg-gray-500/80 dark:bg-gray-600/80 text-white text-xs font-medium px-2 py-1 rounded backdrop-blur-sm z-10">
+                    {formatReleaseDate(set.releaseDate)}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="p-4">

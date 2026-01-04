@@ -27,12 +27,37 @@ export async function fetchAllSets(): Promise<CardSet[]> {
 
       // Add series information to each set
       if (seriesDetail.sets) {
-        const setsWithSeries = seriesDetail.sets.map((set: any) => ({
-          ...set,
-          seriesName: series.name,
-          seriesId: series.id
-        }));
-        allSets.push(...setsWithSeries);
+        // Fetch detailed info for each set to get release dates
+        const setsWithDetails = await Promise.all(
+          seriesDetail.sets.map(async (set: any) => {
+            try {
+              const setDetailResponse = await fetch(`${API_BASE}/sets/${set.id}`, {
+                next: { revalidate: 3600 }
+              });
+
+              if (setDetailResponse.ok) {
+                const setDetail = await setDetailResponse.json();
+                return {
+                  ...set,
+                  seriesName: series.name,
+                  seriesId: series.id,
+                  releaseDate: setDetail.releaseDate
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching details for set ${set.id}:`, error);
+            }
+
+            // Fallback if detailed fetch fails
+            return {
+              ...set,
+              seriesName: series.name,
+              seriesId: series.id
+            };
+          })
+        );
+
+        allSets.push(...setsWithDetails);
       }
     }
   }
