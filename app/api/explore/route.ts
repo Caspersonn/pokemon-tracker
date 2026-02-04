@@ -77,11 +77,11 @@ export async function GET(request: NextRequest) {
     });
 
     // Fetch set details for date sorting
-    const uniqueSetIds = [...new Set(mappedCards.map(c => c.setId))];
+    const uniqueSetIds = [...new Set(mappedCards.map((c: any) => c.setId))] as string[];
     const setDetailsMap = new Map<string, string>();
 
     await Promise.all(
-      uniqueSetIds.map(async (setId) => {
+      uniqueSetIds.map(async (setId: string) => {
         try {
           const setResponse = await fetch(`${API_BASE}/sets/${setId}`, {
             next: { revalidate: 3600 }
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Add releaseDate to cards
-    const cardsWithDates = mappedCards.map(card => ({
+    const cardsWithDates = mappedCards.map((card: any) => ({
       ...card,
       releaseDate: setDetailsMap.get(card.setId) || null
     }));

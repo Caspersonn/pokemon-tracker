@@ -6,6 +6,9 @@ interface ChecklistPageProps {
   params: Promise<{ setId: string }>;
 }
 
+// Force dynamic rendering (no static generation at build time)
+export const dynamic = 'force-dynamic';
+
 export default async function ChecklistPage({ params }: ChecklistPageProps) {
   const { setId } = await params;
   const cards = await fetchSetCards(setId);

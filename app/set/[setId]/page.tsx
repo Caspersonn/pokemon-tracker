@@ -7,6 +7,9 @@ interface SetPageProps {
   params: Promise<{ setId: string }>;
 }
 
+// Force dynamic rendering (no static generation at build time)
+export const dynamic = 'force-dynamic';
+
 export default async function SetPage({ params }: SetPageProps) {
   const { setId } = await params;
   const cards = await fetchSetCards(setId);
@@ -68,11 +71,4 @@ export default async function SetPage({ params }: SetPageProps) {
       </main>
     </div>
   );
-}
-
-export async function generateStaticParams() {
-  const sets = await fetchAllSets();
-  return sets.map((set) => ({
-    setId: set.id,
-  }));
 }
