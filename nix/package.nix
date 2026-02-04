@@ -3,7 +3,15 @@ buildNpmPackage {
   pname = "pokemon-tracker";
   version = "0.1.0";
 
-  src = ../.;
+  src = lib.cleanSourceWith {
+    src = ../.;
+    filter = path: type:
+      let
+        baseName = baseNameOf path;
+        # Exclude result symlink and build artifacts
+      in baseName != "result" && baseName != ".git"
+      && lib.cleanSourceFilter path type;
+  };
 
   npmDepsHash = "sha256-8SAXHMI7t/Dji5r0WWa74sOSAh8uFV8OwnSsew2P7AA=";
 
