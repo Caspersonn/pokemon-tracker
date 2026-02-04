@@ -77,3 +77,41 @@ export async function fetchSetCards(setId: string): Promise<Card[]> {
   const data = await response.json();
   return data.cards || [];
 }
+
+export async function fetchAllCards(): Promise<Card[]> {
+  // Fetch all cards from the API
+  const response = await fetch(`${API_BASE}/cards`, {
+    next: { revalidate: 3600 }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch all cards');
+  }
+
+  const cardsList = await response.json();
+
+  // The /cards endpoint returns minimal data: id, localId, name, image
+  // Extract set ID from card ID (e.g., "base1-1" -> "base1", "sv08-123" -> "sv08")
+  const cards: Card[] = cardsList.map((card: any) => {
+    // Extract set ID: everything before the last hyphen
+    const lastHyphenIndex = card.id.lastIndexOf('-');
+    const setId = lastHyphenIndex > 0 ? card.id.substring(0, lastHyphenIndex) : '';
+
+    return {
+      id: card.id,
+      localId: card.localId,
+      name: card.name,
+      image: card.image || `https://assets.tcgdex.net/en/${setId}/${card.localId}`,
+      category: 'Pokemon',
+      types: [],
+      rarity: '',
+      set: {
+        id: setId,
+        name: '',
+        cardCount: { official: 0, total: 0 }
+      }
+    };
+  });
+
+  return cards;
+}

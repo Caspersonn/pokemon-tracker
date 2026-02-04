@@ -11,6 +11,7 @@
         prisma-engines
         prisma
         openssl
+        nodejs_24
       ];
       shellHook = ''
         export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig";

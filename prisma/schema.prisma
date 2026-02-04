@@ -19,6 +19,8 @@ model User {
   collections   CollectedCard[]
   filterSeries  FilterSeries[]
   wishlistSets  WishlistSet[]
+  neededCards   NeededCard[]
+  wantedCards   WantedCard[]
 }
 
 model CollectedCard {
@@ -54,4 +56,30 @@ model WishlistSet {
 
   @@unique([userId, setId])
   @@index([userId])
+}
+
+model NeededCard {
+  id        String   @id @default(cuid())
+  userId    String
+  setId     String
+  cardId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, setId, cardId])
+  @@index([userId])
+  @@index([setId])
+}
+
+model WantedCard {
+  id        String   @id @default(cuid())
+  userId    String
+  setId     String
+  cardId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, setId, cardId])
+  @@index([userId])
+  @@index([setId])
 }

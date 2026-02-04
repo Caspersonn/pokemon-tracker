@@ -145,3 +145,87 @@ export async function toggleNeededCardsSet(setId: string, currentSets: string[])
   await saveNeededCardsSets(newSets);
   return newSets;
 }
+
+// Need card functions
+export async function getNeedCards(): Promise<CollectionData> {
+  try {
+    const response = await fetch('/api/need');
+    if (!response.ok) {
+      if (response.status === 401) {
+        return {};
+      }
+      throw new Error('Failed to fetch needed cards');
+    }
+    const data = await response.json();
+    return data.needCards || {};
+  } catch (error) {
+    console.error('Error loading needed cards:', error);
+    return {};
+  }
+}
+
+export async function toggleNeedCard(setId: string, cardId: string): Promise<boolean> {
+  try {
+    const response = await fetch('/api/need/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ setId, cardId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to toggle need card');
+    }
+
+    const data = await response.json();
+    return data.needed;
+  } catch (error) {
+    console.error('Error toggling need card:', error);
+    throw error;
+  }
+}
+
+export function isCardNeeded(needData: CollectionData, setId: string, cardId: string): boolean {
+  return needData[setId]?.[cardId] || false;
+}
+
+// Want card functions
+export async function getWantCards(): Promise<CollectionData> {
+  try {
+    const response = await fetch('/api/want');
+    if (!response.ok) {
+      if (response.status === 401) {
+        return {};
+      }
+      throw new Error('Failed to fetch wanted cards');
+    }
+    const data = await response.json();
+    return data.wantCards || {};
+  } catch (error) {
+    console.error('Error loading wanted cards:', error);
+    return {};
+  }
+}
+
+export async function toggleWantCard(setId: string, cardId: string): Promise<boolean> {
+  try {
+    const response = await fetch('/api/want/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ setId, cardId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to toggle want card');
+    }
+
+    const data = await response.json();
+    return data.wanted;
+  } catch (error) {
+    console.error('Error toggling want card:', error);
+    throw error;
+  }
+}
+
+export function isCardWanted(wantData: CollectionData, setId: string, cardId: string): boolean {
+  return wantData[setId]?.[cardId] || false;
+}

@@ -102,6 +102,12 @@ export default function NeededCardsPage({ sets }: NeededCardsPageProps) {
                   Sets
                 </Link>
                 <Link
+                  href="/explore"
+                  className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  Explore
+                </Link>
+                <Link
                   href="/needed-cards"
                   className="px-4 py-2 text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                 >
