@@ -79,23 +79,17 @@ in {
   };
 
   config = mkIf cfg.enable {
-    # Create system user for the service
-    users.users.pokemon-tracker = {
-      isSystemUser = true;
-      group = "pokemon-tracker";
-      description = "Pokemon Tracker service user";
-    };
-
-    users.groups.pokemon-tracker = { };
-
     # Enable and configure PostgreSQL
     services.postgresql = mkIf cfg.database.createLocally {
       enable = true;
       ensureDatabases = [ cfg.database.name ];
       ensureUsers = [{
-        name = "pokemon-tracker";
+        name = cfg.database.user;
         ensureDBOwnership = true;
       }];
+      initialScript = pkgs.writeText "backend-initScript" ''
+        alter user ${cfg.database.user} with password '${cfg.database.user}';
+      '';
     };
 
     # Create systemd service
@@ -105,7 +99,7 @@ in {
       else
         "http://${cfg.host}:${toString cfg.port}";
       databaseUrl = if cfg.database.createLocally then
-        "postgresql://pokemon-tracker@localhost:5432/${cfg.database.name}?host=/run/postgresql"
+        "postgresql://${cfg.database.user}:${cfg.database.user}@localhost:5432/${cfg.database.name}"
       else
         throw
         "External database configuration not yet implemented. Set database.createLocally = false and provide DATABASE_URL via environmentFiles.";
@@ -127,8 +121,7 @@ in {
 
       serviceConfig = {
         Type = "simple";
-        User = "pokemon-tracker";
-        Group = "pokemon-tracker";
+        DynamicUser = true;
         StateDirectory = "pokemon-tracker";
         WorkingDirectory = "${cfg.package}/lib";
         ExecStart = "${cfg.package}/bin/pokemon-tracker";
