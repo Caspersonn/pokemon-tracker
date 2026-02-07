@@ -37,24 +37,9 @@ in {
         default = "pokemon_tracker";
         description = "PostgreSQL user name";
       };
-
-      createLocally = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Whether to create the database and user locally";
-      };
     };
 
     nextauth = {
-      secretFile = mkOption {
-        type = types.path;
-        description = ''
-          Path to a file containing the NEXTAUTH_SECRET.
-          This file should contain a random string (at least 32 characters).
-          Generate with: openssl rand -base64 32 > /var/secrets/nextauth-secret
-        '';
-      };
-
       url = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -79,57 +64,40 @@ in {
   };
 
   config = mkIf cfg.enable {
-    # Enable and configure PostgreSQL
-    services.postgresql = mkIf cfg.database.createLocally {
-      enable = true;
-      ensureDatabases = [ cfg.database.name ];
-      ensureUsers = [{
-        name = cfg.database.user;
-        ensureDBOwnership = true;
-      }];
-      initialScript = pkgs.writeText "backend-initScript" ''
-        alter user ${cfg.database.user} with password '${cfg.database.user}';
-      '';
+
+    users.users.pokemon_tracker = {
+      isSystemUser = true;
+      group = "pokemon_tracker";
     };
 
-    # Create systemd service
+    users.groups.pokemon_tracker = {};
+
     systemd.services.pokemon-tracker = let
-      nextauthUrl = if cfg.nextauth.url != null then
-        cfg.nextauth.url
-      else
-        "http://${cfg.host}:${toString cfg.port}";
-      databaseUrl = if cfg.database.createLocally then
-        "postgresql://${cfg.database.user}:${cfg.database.user}@localhost:5432/${cfg.database.name}"
-      else
-        throw
-        "External database configuration not yet implemented. Set database.createLocally = false and provide DATABASE_URL via environmentFiles.";
+      nextauthUrl = if cfg.nextauth.url != null then cfg.nextauth.url else "http://${cfg.host}:${toString cfg.port}";
     in {
       description = "Pokemon Tracker - Pokemon card collection tracker";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ]
-        ++ optional cfg.database.createLocally "postgresql.service";
-      requires = optional cfg.database.createLocally "postgresql.service";
+      after = [ "network.target" ];
 
       environment = {
         NODE_ENV = "production";
         PORT = toString cfg.port;
         HOSTNAME = cfg.host;
-        DATABASE_URL = databaseUrl;
         NEXTAUTH_URL = nextauthUrl;
         ALLOWED_EMAILS = concatStringsSep "," cfg.allowedEmails;
       };
 
       serviceConfig = {
         Type = "simple";
-        DynamicUser = true;
+        #DynamicUser = true;
+        User = "pokemon_tracker";
+        Group = "pokemon_tracker";
         StateDirectory = "pokemon-tracker";
         WorkingDirectory = "${cfg.package}/lib";
         ExecStart = "${cfg.package}/bin/pokemon-tracker";
 
-        # Load secrets from file
-        EnvironmentFile = [ cfg.nextauth.secretFile ] ++ cfg.environmentFiles;
+        EnvironmentFile = cfg.environmentFiles;
 
-        # Security hardening
         NoNewPrivileges = true;
         PrivateTmp = true;
         PrivateDevices = true;
@@ -144,33 +112,13 @@ in {
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
         RemoveIPC = true;
-        PrivateMounts = true;
+        PrivateMounts = false;
 
         # Restart on failure
         Restart = "on-failure";
         RestartSec = "5s";
       };
-
-      # Run Prisma migrations before starting the service
-      preStart = ''
-        # Set up Prisma environment
-        export DATABASE_URL="${databaseUrl}"
-        export PRISMA_SCHEMA_PATH="${cfg.package}/lib/prisma/schema.prisma"
-
-        # Set Prisma engine paths
-        export PRISMA_QUERY_ENGINE_LIBRARY="${pkgs.prisma-engines}/lib/libquery_engine.node"
-        export PRISMA_QUERY_ENGINE_BINARY="${pkgs.prisma-engines}/bin/query-engine"
-        export PRISMA_SCHEMA_ENGINE_BINARY="${pkgs.prisma-engines}/bin/schema-engine"
-        export PRISMA_FMT_BINARY="${pkgs.prisma-engines}/bin/prisma-fmt"
-
-        # Run migrations using system Prisma CLI
-        echo "Running database migrations..."
-        cd ${cfg.package}/lib
-        ${pkgs.prisma}/bin/prisma migrate deploy --schema=prisma/schema.prisma
-      '';
+        preStart = "${pkgs.prisma}/bin/prisma migrate deploy";
     };
-
-    # Open firewall if needed (optional - users can override)
-    # networking.firewall.allowedTCPPorts = [ cfg.port ];
   };
 }
