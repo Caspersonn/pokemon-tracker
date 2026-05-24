@@ -16,13 +16,13 @@ export async function GET() {
     });
 
     // Transform to the format expected by the frontend
-    const collection: Record<string, Record<string, boolean>> = {};
+    const collection: Record<string, Record<string, number>> = {};
 
     collectedCards.forEach((card) => {
       if (!collection[card.setId]) {
         collection[card.setId] = {};
       }
-      collection[card.setId][card.cardId] = true;
+      collection[card.setId][card.cardId] = card.amount;
     });
 
     return NextResponse.json({ collection });

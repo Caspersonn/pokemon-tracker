@@ -1,7 +1,7 @@
-import type { CollectionData } from '@/types/tcgdex';
+import type { CollectionData, CardStatusData } from '@/types/tcgdex';
 
 // Re-export types for convenience
-export type { CollectionData };
+export type { CollectionData, CardStatusData };
 
 // API-based storage functions (replaces localStorage)
 
@@ -23,7 +23,7 @@ export async function getCollection(): Promise<CollectionData> {
   }
 }
 
-export async function toggleCard(setId: string, cardId: string): Promise<boolean> {
+export async function toggleCard(setId: string, cardId: string): Promise<{ collected: boolean; amount: number }> {
   try {
     const response = await fetch('/api/collection/toggle', {
       method: 'POST',
@@ -36,7 +36,7 @@ export async function toggleCard(setId: string, cardId: string): Promise<boolean
     }
 
     const data = await response.json();
-    return data.collected;
+    return { collected: data.collected, amount: data.amount };
   } catch (error) {
     console.error('Error toggling card:', error);
     throw error;
@@ -44,7 +44,7 @@ export async function toggleCard(setId: string, cardId: string): Promise<boolean
 }
 
 export function isCardCollected(collection: CollectionData, setId: string, cardId: string): boolean {
-  return collection[setId]?.[cardId] || false;
+  return (collection[setId]?.[cardId] ?? 0) > 0;
 }
 
 export function getSetProgress(
@@ -53,7 +53,7 @@ export function getSetProgress(
   totalCards: number
 ): { collected: number; total: number; percentage: number } {
   const setData = collection[setId] || {};
-  const collected = Object.values(setData).filter(Boolean).length;
+  const collected = Object.values(setData).filter(v => v > 0).length;
 
   return {
     collected,
@@ -147,7 +147,7 @@ export async function toggleNeededCardsSet(setId: string, currentSets: string[])
 }
 
 // Need card functions
-export async function getNeedCards(): Promise<CollectionData> {
+export async function getNeedCards(): Promise<CardStatusData> {
   try {
     const response = await fetch('/api/need');
     if (!response.ok) {
@@ -184,12 +184,12 @@ export async function toggleNeedCard(setId: string, cardId: string): Promise<boo
   }
 }
 
-export function isCardNeeded(needData: CollectionData, setId: string, cardId: string): boolean {
+export function isCardNeeded(needData: CardStatusData, setId: string, cardId: string): boolean {
   return needData[setId]?.[cardId] || false;
 }
 
 // Want card functions
-export async function getWantCards(): Promise<CollectionData> {
+export async function getWantCards(): Promise<CardStatusData> {
   try {
     const response = await fetch('/api/want');
     if (!response.ok) {
@@ -226,6 +226,6 @@ export async function toggleWantCard(setId: string, cardId: string): Promise<boo
   }
 }
 
-export function isCardWanted(wantData: CollectionData, setId: string, cardId: string): boolean {
+export function isCardWanted(wantData: CardStatusData, setId: string, cardId: string): boolean {
   return wantData[setId]?.[cardId] || false;
 }

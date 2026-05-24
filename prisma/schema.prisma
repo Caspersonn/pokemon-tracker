@@ -28,6 +28,7 @@ model CollectedCard {
   userId    String
   setId     String
   cardId    String
+  amount    Int      @default(1)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

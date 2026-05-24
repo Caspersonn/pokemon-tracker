@@ -36,6 +36,12 @@ export interface Card {
 
 export interface CollectionData {
   [setId: string]: {
-    [cardId: string]: boolean; // true if collected
+    [cardId: string]: number; // amount collected
+  };
+}
+
+export interface CardStatusData {
+  [setId: string]: {
+    [cardId: string]: boolean;
   };
 }

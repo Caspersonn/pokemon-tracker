@@ -1,9 +1,5 @@
-# card-tracking Specification
+## MODIFIED Requirements
 
-## Purpose
-Tracks user card collection status including quantity, needed, and wanted states.
-
-## Requirements
 ### Requirement: Need Card Tracking
 Users SHALL be able to mark individual cards as "needed" to indicate cards they want to acquire for set completion or other purposes.
 

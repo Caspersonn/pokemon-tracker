@@ -53,14 +53,14 @@ export default function NeededCardsSetSection({ set }: NeededCardsSetSectionProp
 
   const handleToggle = async (cardId: string) => {
     try {
-      const isCollected = await toggleCard(set.id, cardId);
+      const result = await toggleCard(set.id, cardId);
 
       // Update collection data
       const updatedCollection = { ...collection };
       if (!updatedCollection[set.id]) {
         updatedCollection[set.id] = {};
       }
-      updatedCollection[set.id][cardId] = isCollected;
+      updatedCollection[set.id][cardId] = result.amount;
       setCollection(updatedCollection);
 
       // Update uncollected cards list

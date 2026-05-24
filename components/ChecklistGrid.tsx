@@ -43,14 +43,14 @@ export default function ChecklistGrid({ cards, setId }: ChecklistGridProps) {
 
   const handleToggle = async (cardId: string) => {
     try {
-      const isCollected = await toggleCard(setId, cardId);
+      const result = await toggleCard(setId, cardId);
 
       // Update collection data
       const updatedCollection = { ...collection };
       if (!updatedCollection[setId]) {
         updatedCollection[setId] = {};
       }
-      updatedCollection[setId][cardId] = isCollected;
+      updatedCollection[setId][cardId] = result.amount;
       setCollection(updatedCollection);
 
       // Update uncollected cards list

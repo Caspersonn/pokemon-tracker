@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signOut } from 'next-auth/react';
-import type { CardSet, CollectionData } from '@/types/tcgdex';
+import type { CardSet, CollectionData, CardStatusData } from '@/types/tcgdex';
 import { getCollection, isCardCollected, toggleCard, getNeedCards, isCardNeeded, toggleNeedCard, getWantCards, isCardWanted, toggleWantCard } from '@/lib/storage';
 import { formatImageUrl } from '@/lib/image';
 
@@ -64,11 +64,11 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
   const [collected, setCollected] = useState<Record<string, boolean>>({});
 
   // Need state
-  const [needData, setNeedData] = useState<CollectionData>({});
+  const [needData, setNeedData] = useState<CardStatusData>({});
   const [needed, setNeeded] = useState<Record<string, boolean>>({});
 
   // Want state
-  const [wantData, setWantData] = useState<CollectionData>({});
+  const [wantData, setWantData] = useState<CardStatusData>({});
   const [wanted, setWanted] = useState<Record<string, boolean>>({});
 
   // Create a map of set IDs to set names for quick lookup
@@ -156,18 +156,18 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
 
   const handleToggle = async (card: ExploreCard) => {
     try {
-      const isCollectedNow = await toggleCard(card.setId, card.id);
+      const result = await toggleCard(card.setId, card.id);
 
       setCollected(prev => ({
         ...prev,
-        [card.id]: isCollectedNow
+        [card.id]: result.collected
       }));
 
       const updatedCollection = { ...collection };
       if (!updatedCollection[card.setId]) {
         updatedCollection[card.setId] = {};
       }
-      updatedCollection[card.setId][card.id] = isCollectedNow;
+      updatedCollection[card.setId][card.id] = result.amount;
       setCollection(updatedCollection);
     } catch (error) {
       console.error('Error toggling card:', error);
@@ -468,6 +468,12 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
                   className="px-4 py-2 text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                 >
                   Explore
+                </Link>
+                <Link
+                  href="/scan"
+                  className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  Scan
                 </Link>
               </nav>
             </div>

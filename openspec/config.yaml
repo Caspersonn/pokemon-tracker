@@ -1,0 +1,30 @@
+schema: spec-driven
+
+context: |
+  Pokemon TCG collection tracker. Browse card sets by series, track owned cards,
+  manage wishlists, view completion progress.
+
+  ## Tech Stack
+  Next.js 16 (App Router), TypeScript 5, React 19, Tailwind CSS 4,
+  PostgreSQL + Prisma, NextAuth.js, TCGDex API. NixOS compatible.
+
+  ## Conventions
+  - Server components by default, 'use client' for interactive UI
+  - TypeScript strict mode, camelCase vars, PascalCase components
+  - RESTful API routes in /app/api, Prisma client in lib/prisma.ts
+  - Server-side data fetching with 1hr cache (revalidate: 3600)
+
+  ## File Structure
+  /app - pages and API routes, /components - React components,
+  /lib - utilities, /types - type definitions, /prisma - schema + migrations
+
+  ## Domain
+  - Card ID format: {setId}-{localId} (e.g. "base1-1")
+  - Hierarchy: Series > Sets > Cards
+  - DB tables: User, CollectedCard, FilterSeries, WishlistSet
+  - TCGDex API: https://api.tcgdex.net/v2/en (no auth, rate limited)
+
+  ## Constraints
+  - All card data from TCGDex API (read-only)
+  - Auth required for most features
+  - PostgreSQL required, Prisma targets include "linux-nixos"

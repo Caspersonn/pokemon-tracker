@@ -47,12 +47,12 @@ export default function CardGrid({ cards, setId }: CardGridProps) {
 
   const handleToggle = async (cardId: string) => {
     try {
-      const isCollected = await toggleCard(setId, cardId);
+      const result = await toggleCard(setId, cardId);
 
       // Update local state
       setCollected(prev => ({
         ...prev,
-        [cardId]: isCollected
+        [cardId]: result.collected
       }));
 
       // Update collection data
@@ -60,7 +60,7 @@ export default function CardGrid({ cards, setId }: CardGridProps) {
       if (!updatedCollection[setId]) {
         updatedCollection[setId] = {};
       }
-      updatedCollection[setId][cardId] = isCollected;
+      updatedCollection[setId][cardId] = result.amount;
       setCollection(updatedCollection);
 
       // Update progress
