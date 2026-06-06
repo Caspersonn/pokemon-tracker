@@ -1,7 +1,7 @@
 { lib, buildNpmPackage, nodejs, prisma-engines, makeWrapper, openssl, }:
 buildNpmPackage {
   pname = "pokemon-tracker";
-  version = "0.1.0";
+  version = "0.1.2";
 
   src = lib.cleanSourceWith {
     src = ../.;

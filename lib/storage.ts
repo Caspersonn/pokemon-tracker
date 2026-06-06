@@ -43,6 +43,46 @@ export async function toggleCard(setId: string, cardId: string): Promise<{ colle
   }
 }
 
+export async function incrementCard(setId: string, cardId: string): Promise<{ collected: boolean; amount: number }> {
+  try {
+    const response = await fetch('/api/collection/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ setId, cardId, action: 'increment' }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to increment card');
+    }
+
+    const data = await response.json();
+    return { collected: data.collected, amount: data.amount };
+  } catch (error) {
+    console.error('Error incrementing card:', error);
+    throw error;
+  }
+}
+
+export async function decrementCard(setId: string, cardId: string): Promise<{ collected: boolean; amount: number }> {
+  try {
+    const response = await fetch('/api/collection/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ setId, cardId, action: 'decrement' }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to decrement card');
+    }
+
+    const data = await response.json();
+    return { collected: data.collected, amount: data.amount };
+  } catch (error) {
+    console.error('Error decrementing card:', error);
+    throw error;
+  }
+}
+
 export function isCardCollected(collection: CollectionData, setId: string, cardId: string): boolean {
   return (collection[setId]?.[cardId] ?? 0) > 0;
 }

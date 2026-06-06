@@ -1,8 +1,5 @@
-# card-display Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change fix-explore-card-sizing. Update Purpose after archive.
-## Requirements
 ### Requirement: Card Proportions in Explore Grid
 Pokemon cards SHALL display with a unified layout via a shared CardItem component used by both the Explore page and Sets detail page.
 
@@ -26,34 +23,6 @@ Pokemon cards SHALL display with a unified layout via a shared CardItem componen
 - **THEN** it uses the same CardItem component as the Sets detail page
 - **AND** both pages render identical card layout and behavior
 
-### Requirement: Compact Grid Layout
-The Explore page card grid SHALL display cards in a compact format that scales appropriately across screen sizes.
-
-#### Scenario: Desktop grid layout (xl breakpoint)
-- **WHEN** viewing the Explore page on extra-large screens (1280px+)
-- **THEN** the grid displays 6 columns of cards
-- **AND** cards are sized compactly to fit the available space
-
-#### Scenario: Large desktop grid layout (lg breakpoint)
-- **WHEN** viewing the Explore page on large screens (1024px - 1279px)
-- **THEN** the grid displays 5 columns of cards
-- **AND** cards maintain readable proportions
-
-#### Scenario: Medium screen grid layout (md breakpoint)
-- **WHEN** viewing the Explore page on medium screens (768px - 1023px)
-- **THEN** the grid displays 4 columns of cards
-- **AND** cards remain compact and readable
-
-#### Scenario: Small screen grid layout (sm breakpoint)
-- **WHEN** viewing the Explore page on small screens (640px - 767px)
-- **THEN** the grid displays 3 columns of cards
-- **AND** information remains readable
-
-#### Scenario: Mobile grid layout
-- **WHEN** viewing the Explore page on mobile devices (below 640px)
-- **THEN** the grid displays 2 columns of cards
-- **AND** all card elements remain visible and functional
-
 ### Requirement: Button Functionality Preservation
 All card action buttons SHALL be rendered identically on both the Explore page and Sets detail page.
 
@@ -67,4 +36,3 @@ All card action buttons SHALL be rendered identically on both the Explore page a
 - **WHEN** a card is displayed on the Sets detail page
 - **THEN** Need and Want buttons are available (previously only on Explore page)
 - **AND** they function identically to the Explore page
-

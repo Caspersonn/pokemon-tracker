@@ -1,75 +1,110 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import type { Card } from '@/types/tcgdex';
-import type { CollectionData } from '@/types/tcgdex';
-import { getCollection, isCardCollected, toggleCard, getSetProgress } from '@/lib/storage';
-import { formatImageUrl } from '@/lib/image';
+import type { Card, CollectionData, CardStatusData } from '@/types/tcgdex';
+import { getCollection, getSetProgress, incrementCard, decrementCard, getNeedCards, isCardNeeded, toggleNeedCard, getWantCards, isCardWanted, toggleWantCard } from '@/lib/storage';
+import CardItem from '@/components/CardItem';
 
 interface CardGridProps {
   cards: Card[];
   setId: string;
+  setName?: string;
 }
 
-export default function CardGrid({ cards, setId }: CardGridProps) {
+export default function CardGrid({ cards, setId, setName }: CardGridProps) {
   const [collection, setCollection] = useState<CollectionData>({});
-  const [collected, setCollected] = useState<Record<string, boolean>>({});
   const [progress, setProgress] = useState({ collected: 0, total: 0, percentage: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
+  const [needData, setNeedData] = useState<CardStatusData>({});
+  const [wantData, setWantData] = useState<CardStatusData>({});
+
+  const displaySetName = setName || cards[0]?.set?.name || setId;
+
   useEffect(() => {
-    loadCollection();
+    loadData();
   }, [cards, setId]);
 
-  const loadCollection = async () => {
+  const loadData = async () => {
     setIsLoading(true);
     try {
-      const collectionData = await getCollection();
+      const [collectionData, needCardsData, wantCardsData] = await Promise.all([
+        getCollection(),
+        getNeedCards(),
+        getWantCards(),
+      ]);
       setCollection(collectionData);
+      setNeedData(needCardsData);
+      setWantData(wantCardsData);
 
-      // Load collection status for all cards
-      const collectedStatus: Record<string, boolean> = {};
-      cards.forEach(card => {
-        collectedStatus[card.id] = isCardCollected(collectionData, setId, card.id);
-      });
-      setCollected(collectedStatus);
-
-      // Update progress
       const prog = getSetProgress(collectionData, setId, cards.length);
       setProgress(prog);
     } catch (error) {
-      console.error('Error loading collection:', error);
+      console.error('Error loading data:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleToggle = async (cardId: string) => {
-    try {
-      const result = await toggleCard(setId, cardId);
-
-      // Update local state
-      setCollected(prev => ({
-        ...prev,
-        [cardId]: result.collected
-      }));
-
-      // Update collection data
-      const updatedCollection = { ...collection };
-      if (!updatedCollection[setId]) {
-        updatedCollection[setId] = {};
-      }
+  const updateCollectionState = (cardId: string, result: { collected: boolean; amount: number }) => {
+    const updatedCollection = { ...collection };
+    if (!updatedCollection[setId]) {
+      updatedCollection[setId] = {};
+    }
+    if (result.amount > 0) {
       updatedCollection[setId][cardId] = result.amount;
-      setCollection(updatedCollection);
+    } else {
+      delete updatedCollection[setId][cardId];
+    }
+    setCollection(updatedCollection);
 
-      // Update progress
-      const prog = getSetProgress(updatedCollection, setId, cards.length);
-      setProgress(prog);
+    const prog = getSetProgress(updatedCollection, setId, cards.length);
+    setProgress(prog);
+  };
+
+  const handleIncrement = async (cardId: string) => {
+    try {
+      const result = await incrementCard(setId, cardId);
+      updateCollectionState(cardId, result);
     } catch (error) {
-      console.error('Error toggling card:', error);
-      // Revert optimistic update on error
-      await loadCollection();
+      console.error('Error incrementing card:', error);
+    }
+  };
+
+  const handleDecrement = async (cardId: string) => {
+    try {
+      const result = await decrementCard(setId, cardId);
+      updateCollectionState(cardId, result);
+    } catch (error) {
+      console.error('Error decrementing card:', error);
+    }
+  };
+
+  const handleNeedToggle = async (cardId: string) => {
+    try {
+      const isNeededNow = await toggleNeedCard(setId, cardId);
+      const updatedNeed = { ...needData };
+      if (!updatedNeed[setId]) {
+        updatedNeed[setId] = {};
+      }
+      updatedNeed[setId][cardId] = isNeededNow;
+      setNeedData(updatedNeed);
+    } catch (error) {
+      console.error('Error toggling need card:', error);
+    }
+  };
+
+  const handleWantToggle = async (cardId: string) => {
+    try {
+      const isWantedNow = await toggleWantCard(setId, cardId);
+      const updatedWant = { ...wantData };
+      if (!updatedWant[setId]) {
+        updatedWant[setId] = {};
+      }
+      updatedWant[setId][cardId] = isWantedNow;
+      setWantData(updatedWant);
+    } catch (error) {
+      console.error('Error toggling want card:', error);
     }
   };
 
@@ -104,56 +139,18 @@ export default function CardGrid({ cards, setId }: CardGridProps) {
       {/* Cards grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {cards.map((card) => (
-          <div
+          <CardItem
             key={card.id}
-            className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
-              collected[card.id] ? 'ring-2 ring-green-500' : ''
-            }`}
-          >
-            <div className="relative aspect-[2.5/3.5] bg-gray-100 dark:bg-gray-700">
-              <Image
-                src={formatImageUrl(card.image)}
-                alt={card.name}
-                fill
-                className={`object-contain transition-all duration-300 ${
-                  collected[card.id] ? 'grayscale opacity-50' : ''
-                }`}
-                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-              />
-            </div>
-
-            <div className="p-3">
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                #{card.localId}
-              </div>
-              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1 line-clamp-1">
-                {card.name}
-              </h3>
-              <div className="flex items-center gap-2 mb-2">
-                {card.types && card.types.map((type) => (
-                  <span
-                    key={type}
-                    className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                  >
-                    {type}
-                  </span>
-                ))}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                {card.rarity}
-              </div>
-              <button
-                onClick={() => handleToggle(card.id)}
-                className={`w-full py-2 px-3 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  collected[card.id]
-                    ? 'bg-green-500 hover:bg-green-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {collected[card.id] ? 'Collected ✓' : 'Uncollected'}
-              </button>
-            </div>
-          </div>
+            card={{ ...card, setId }}
+            setName={displaySetName}
+            amount={collection[setId]?.[card.id] ?? 0}
+            isNeeded={isCardNeeded(needData, setId, card.id)}
+            isWanted={isCardWanted(wantData, setId, card.id)}
+            onIncrement={() => handleIncrement(card.id)}
+            onDecrement={() => handleDecrement(card.id)}
+            onToggleNeed={() => handleNeedToggle(card.id)}
+            onToggleWant={() => handleWantToggle(card.id)}
+          />
         ))}
       </div>
     </div>

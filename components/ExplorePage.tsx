@@ -2,11 +2,10 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import type { CardSet, CollectionData, CardStatusData } from '@/types/tcgdex';
-import { getCollection, isCardCollected, toggleCard, getNeedCards, isCardNeeded, toggleNeedCard, getWantCards, isCardWanted, toggleWantCard } from '@/lib/storage';
-import { formatImageUrl } from '@/lib/image';
+import { getCollection, isCardCollected, incrementCard, decrementCard, getNeedCards, isCardNeeded, toggleNeedCard, getWantCards, isCardWanted, toggleWantCard } from '@/lib/storage';
+import CardItem from '@/components/CardItem';
 
 interface ExplorePageProps {
   sets: CardSet[];
@@ -154,23 +153,39 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const handleToggle = async (card: ExploreCard) => {
-    try {
-      const result = await toggleCard(card.setId, card.id);
+  const updateCollectionState = (card: ExploreCard, result: { collected: boolean; amount: number }) => {
+    setCollected(prev => ({
+      ...prev,
+      [card.id]: result.collected
+    }));
 
-      setCollected(prev => ({
-        ...prev,
-        [card.id]: result.collected
-      }));
-
-      const updatedCollection = { ...collection };
-      if (!updatedCollection[card.setId]) {
-        updatedCollection[card.setId] = {};
-      }
+    const updatedCollection = { ...collection };
+    if (!updatedCollection[card.setId]) {
+      updatedCollection[card.setId] = {};
+    }
+    if (result.amount > 0) {
       updatedCollection[card.setId][card.id] = result.amount;
-      setCollection(updatedCollection);
+    } else {
+      delete updatedCollection[card.setId][card.id];
+    }
+    setCollection(updatedCollection);
+  };
+
+  const handleIncrement = async (card: ExploreCard) => {
+    try {
+      const result = await incrementCard(card.setId, card.id);
+      updateCollectionState(card, result);
     } catch (error) {
-      console.error('Error toggling card:', error);
+      console.error('Error incrementing card:', error);
+    }
+  };
+
+  const handleDecrement = async (card: ExploreCard) => {
+    try {
+      const result = await decrementCard(card.setId, card.id);
+      updateCollectionState(card, result);
+    } catch (error) {
+      console.error('Error decrementing card:', error);
     }
   };
 
@@ -480,15 +495,8 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
 
             {/* Search, Sort, and Logout */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
 
               {/* Sort dropdown */}
-
               {isSearchOpen && (
                 <input
                   type="text"
@@ -520,6 +528,12 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
                     <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 )}
+              </button>
+              <button
+                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                Logout
               </button>
             </div>
           </div>
@@ -667,76 +681,18 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
                 {paginatedCards.length > 0 ? (
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
                     {paginatedCards.map((card) => (
-                      <div
+                      <CardItem
                         key={card.id}
-                        className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
-                          collected[card.id] ? 'ring-2 ring-green-500' : ''
-                        }`}
-                      >
-                        <div className="relative w-full aspect-[3/4] bg-gray-100 dark:bg-gray-700">
-                          <Image
-                            src={formatImageUrl(card.image)}
-                            alt={card.name}
-                            fill
-                            className={`object-contain transition-all duration-300 ${
-                              collected[card.id] ? 'grayscale opacity-50' : ''
-                            }`}
-                            sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, (max-width: 1280px) 16vw, 12vw"
-                          />
-                        </div>
-
-                        <div className="p-4">
-                          <div className="text-gray-500 text-[13px] dark:text-gray-400 mb-0.5">
-                            #{card.localId}
-                          </div>
-                          <h3 className="font-semibold text-xs text-gray-900 dark:text-white mb-0.5 line-clamp-1">
-                            {card.name}
-                          </h3>
-                          <div className="text-gray-500 dark:text-gray-400 mb-1.5 line-clamp-1">
-                            {setNameMap.get(card.setId) || card.setId}
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <button
-                              onClick={() => handleToggle(card)}
-                              className={`flex-1 py-1.5 px-2 rounded font-medium transition-colors duration-200 ${
-                                collected[card.id]
-                                  ? 'bg-green-500 hover:bg-green-600 text-white'
-                                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-                              }`}
-                            >
-                              {collected[card.id] ? 'Collected ✓' : 'Uncollected'}
-                            </button>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={() => handleNeedToggle(card)}
-                                className={`py-1.5 px-2 rounded text-sm font-medium transition-colors duration-200 ${
-                                  needed[card.id]
-                                    ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                                    : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                }`}
-                                aria-label="Need card"
-                              >
-                                <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleWantToggle(card)}
-                                className={`py-1.5 px-2 rounded text-sm font-medium transition-colors duration-200 ${
-                                  wanted[card.id]
-                                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                                    : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                }`}
-                                aria-label="Want card"
-                              >
-                                <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        card={card}
+                        setName={setNameMap.get(card.setId) || card.setId}
+                        amount={collection[card.setId]?.[card.id] ?? 0}
+                        isNeeded={isCardNeeded(needData, card.setId, card.id)}
+                        isWanted={isCardWanted(wantData, card.setId, card.id)}
+                        onIncrement={() => handleIncrement(card)}
+                        onDecrement={() => handleDecrement(card)}
+                        onToggleNeed={() => handleNeedToggle(card)}
+                        onToggleWant={() => handleWantToggle(card)}
+                      />
                     ))}
                   </div>
                 ) : (

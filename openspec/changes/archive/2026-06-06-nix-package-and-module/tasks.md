@@ -25,7 +25,7 @@
 - [x] 4.1 Add usage examples to module documentation
 - [x] 4.2 Document environment variable configuration
 - [x] 4.3 Test package installation with `nix build`
-- [ ] 4.4 Test module in a NixOS VM or container
-- [ ] 4.5 Verify migrations run automatically on service start
-- [ ] 4.6 Validate service starts correctly and serves requests
+- [x] 4.4 Test module in a NixOS VM or container
+- [x] 4.5 Verify migrations run automatically on service start
+- [x] 4.6 Validate service starts correctly and serves requests
 

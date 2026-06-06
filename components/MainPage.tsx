@@ -132,12 +132,6 @@ export default function MainPage({ sets }: MainPageProps) {
 
             {/* Search, Filter and Logout Section */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
               {isSearchOpen && (
                 <input
                   type="text"
@@ -233,6 +227,13 @@ export default function MainPage({ sets }: MainPageProps) {
                     <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 )}
+              </button>
+
+              <button
+                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                Logout
               </button>
             </div>
           </div>
