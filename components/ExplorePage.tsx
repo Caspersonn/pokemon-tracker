@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { signOut } from 'next-auth/react';
 import type { CardSet, CollectionData, CardStatusData } from '@/types/tcgdex';
 import { getCollection, isCardCollected, incrementCard, decrementCard, getNeedCards, isCardNeeded, toggleNeedCard, getWantCards, isCardWanted, toggleWantCard } from '@/lib/storage';
 import CardItem from '@/components/CardItem';
+import AppHeader from '@/components/AppHeader';
 
 interface ExplorePageProps {
   sets: CardSet[];
@@ -457,150 +456,104 @@ export default function ExplorePage({ sets }: ExplorePageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-6 flex-1">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Pokemon Card Collection Tracker
-                </h1>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  Explore all Pokemon cards
-                </p>
-              </div>
+      <AppHeader subtitle="Explore all Pokemon cards" activePage="explore">
+        {isSearchOpen && (
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white w-64 transition-all duration-200"
+            autoFocus
+          />
+        )}
 
-              {/* Navigation */}
-              <nav className="flex items-center gap-1">
-                <Link
-                  href="/"
-                  className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  Sets
-                </Link>
-                <Link
-                  href="/explore"
-                  className="px-4 py-2 text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                >
-                  Explore
-                </Link>
-                <Link
-                  href="/scan"
-                  className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  Scan
-                </Link>
-              </nav>
-            </div>
-
-            {/* Search, Sort, and Logout */}
-            <div className="flex items-center gap-2">
-
-              {/* Sort dropdown */}
-              {isSearchOpen && (
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white w-64 transition-all duration-200"
-                  autoFocus
-                />
-              )}
-
-              <button
-                onClick={() => {
-                  setIsSearchOpen(!isSearchOpen);
-                  if (isSearchOpen) {
-                    setSearchInput('');
-                    setSearchQuery('');
-                  }
-                }}
-                className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
-                aria-label="Search"
-              >
-                {isSearchOpen ? (
-                  <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                )}
-              </button>
-              <button
-                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-
-          {/* Filter/Search Status */}
-          {(searchQuery || totalActiveFilters > 0) && (
-            <div className="mt-4 flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Found {filteredCards.length} card{filteredCards.length !== 1 ? 's' : ''}
-              </span>
-              {showUncollectedOnly && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
-                  Uncollected only
-                  <button onClick={() => setShowUncollectedOnly(false)} className="ml-1 hover:text-gray-900 dark:hover:text-gray-50">×</button>
-                </span>
-              )}
-              {showCollectedOnly && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">
-                  Collected only
-                  <button onClick={() => setShowCollectedOnly(false)} className="ml-1 hover:text-green-900 dark:hover:text-green-50">×</button>
-                </span>
-              )}
-              {showNeededOnly && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
-                  Needed only
-                  <button onClick={() => setShowNeededOnly(false)} className="ml-1 hover:text-blue-900 dark:hover:text-blue-50">×</button>
-                </span>
-              )}
-              {showWantedOnly && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100">
-                  Wanted only
-                  <button onClick={() => setShowWantedOnly(false)} className="ml-1 hover:text-red-900 dark:hover:text-red-50">×</button>
-                </span>
-              )}
-              {searchQuery && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
-                  Search: &quot;{searchQuery}&quot;
-                  <button onClick={() => { setSearchInput(''); setSearchQuery(''); }} className="ml-1 hover:text-blue-900 dark:hover:text-blue-50">×</button>
-                </span>
-              )}
-              {Array.from(selectedTypes).map(type => (
-                <span key={type} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100">
-                  {type}
-                  <button onClick={() => toggleType(type)} className="ml-1 hover:text-orange-900 dark:hover:text-orange-50">×</button>
-                </span>
-              ))}
-              {Array.from(selectedRarities).map(rarity => (
-                <span key={rarity} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100">
-                  {rarity}
-                  <button onClick={() => toggleRarity(rarity)} className="ml-1 hover:text-purple-900 dark:hover:text-purple-50">×</button>
-                </span>
-              ))}
-              {Array.from(selectedSets).map(setId => (
-                <span key={setId} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">
-                  {setNameMap.get(setId) || setId}
-                  <button onClick={() => toggleSet(setId)} className="ml-1 hover:text-green-900 dark:hover:text-green-50">×</button>
-                </span>
-              ))}
-              {totalActiveFilters > 0 && (
-                <button onClick={clearAllFilters} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                  Clear all filters
-                </button>
-              )}
-            </div>
+        <button
+          onClick={() => {
+            setIsSearchOpen(!isSearchOpen);
+            if (isSearchOpen) {
+              setSearchInput('');
+              setSearchQuery('');
+            }
+          }}
+          className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
+          aria-label="Search"
+        >
+          {isSearchOpen ? (
+            <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          ) : (
+            <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
           )}
+        </button>
+      </AppHeader>
+
+      {/* Filter/Search Status */}
+      {(searchQuery || totalActiveFilters > 0) && (
+        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Found {filteredCards.length} card{filteredCards.length !== 1 ? 's' : ''}
+            </span>
+            {showUncollectedOnly && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+                Uncollected only
+                <button onClick={() => setShowUncollectedOnly(false)} className="ml-1 hover:text-gray-900 dark:hover:text-gray-50">×</button>
+              </span>
+            )}
+            {showCollectedOnly && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">
+                Collected only
+                <button onClick={() => setShowCollectedOnly(false)} className="ml-1 hover:text-green-900 dark:hover:text-green-50">×</button>
+              </span>
+            )}
+            {showNeededOnly && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
+                Needed only
+                <button onClick={() => setShowNeededOnly(false)} className="ml-1 hover:text-blue-900 dark:hover:text-blue-50">×</button>
+              </span>
+            )}
+            {showWantedOnly && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100">
+                Wanted only
+                <button onClick={() => setShowWantedOnly(false)} className="ml-1 hover:text-red-900 dark:hover:text-red-50">×</button>
+              </span>
+            )}
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
+                Search: &quot;{searchQuery}&quot;
+                <button onClick={() => { setSearchInput(''); setSearchQuery(''); }} className="ml-1 hover:text-blue-900 dark:hover:text-blue-50">×</button>
+              </span>
+            )}
+            {Array.from(selectedTypes).map(type => (
+              <span key={type} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100">
+                {type}
+                <button onClick={() => toggleType(type)} className="ml-1 hover:text-orange-900 dark:hover:text-orange-50">×</button>
+              </span>
+            ))}
+            {Array.from(selectedRarities).map(rarity => (
+              <span key={rarity} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100">
+                {rarity}
+                <button onClick={() => toggleRarity(rarity)} className="ml-1 hover:text-purple-900 dark:hover:text-purple-50">×</button>
+              </span>
+            ))}
+            {Array.from(selectedSets).map(setId => (
+              <span key={setId} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">
+                {setNameMap.get(setId) || setId}
+                <button onClick={() => toggleSet(setId)} className="ml-1 hover:text-green-900 dark:hover:text-green-50">×</button>
+              </span>
+            ))}
+            {totalActiveFilters > 0 && (
+              <button onClick={clearAllFilters} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                Clear all filters
+              </button>
+            )}
+          </div>
         </div>
-      </header>
+      )}
 
       <div className="py-8">
         <div className="flex">

@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { signOut } from 'next-auth/react';
 import type { CardSet } from '@/types/tcgdex';
 import { getNeededCardsSets, saveNeededCardsSets } from '@/lib/storage';
 import NeededCardsSetSection from './NeededCardsSetSection';
+import AppHeader from './AppHeader';
 
 interface NeededCardsPageProps {
   sets: CardSet[];
@@ -79,60 +78,12 @@ export default function NeededCardsPage({ sets }: NeededCardsPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+      <AppHeader subtitle="View uncollected cards across multiple sets" activePage="wishlist" />
+
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Top row: Title and Navigation */}
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-6 flex-1">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Pokemon Card Collection Tracker
-                </h1>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  View uncollected cards across multiple sets
-                </p>
-              </div>
-
-              {/* Navigation Buttons */}
-              <nav className="flex items-center gap-1">
-                <Link
-                  href="/"
-                  className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  Sets
-                </Link>
-                <Link
-                  href="/explore"
-                  className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  Explore
-                </Link>
-                <Link
-                  href="/needed-cards"
-                  className="px-4 py-2 text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                >
-                  Wishlist
-                </Link>
-                <Link
-                  href="/scan"
-                  className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  Scan
-                </Link>
-              </nav>
-            </div>
-
-            {/* Logout Button */}
-            <button
-              onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-
           {/* Set Selector */}
-          <div className="py-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="py-4">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <button
@@ -246,7 +197,7 @@ export default function NeededCardsPage({ sets }: NeededCardsPageProps) {
           )}
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {selectedSets.size === 0 ? (

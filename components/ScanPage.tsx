@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import Link from 'next/link';
-import { signOut } from 'next-auth/react';
 import type { CardSet, Card } from '@/types/tcgdex';
+import AppHeader from './AppHeader';
 import { fetchSetCards } from '@/lib/api';
 import { buildCardDB, getCachedCardDB, cacheCardDB, findBestMatch, featuresFromFrame, getModel, type CardDB, type CardEntry } from '@/lib/phash';
 import { createScannerEngine, processFrame, CONFIDENT_THRESHOLD, type ScannerEngine, type ScanMatchResult, type ScanRegion } from '@/lib/scanner';
@@ -201,42 +200,12 @@ export default function ScanPage({ sets }: ScanPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+      <AppHeader subtitle="Scan cards to add them to your collection" activePage="scan" />
+
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-6 flex-1">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Card Scanner
-                </h1>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  Scan cards to add them to your collection
-                </p>
-              </div>
-
-              <nav className="flex items-center gap-1">
-                <Link href="/" className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                  Sets
-                </Link>
-                <Link href="/explore" className="px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                  Explore
-                </Link>
-                <Link href="/scan" className="px-4 py-2 text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
-                  Scan
-                </Link>
-              </nav>
-            </div>
-
-            <button
-              onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-
           {/* Set selector */}
-          <div className="pb-4 flex gap-2">
+          <div className="pb-4 pt-4 flex gap-2">
             <select
               value={selectedSetId}
               onChange={(e) => handleSetSelect(e.target.value)}
@@ -268,7 +237,7 @@ export default function ScanPage({ sets }: ScanPageProps) {
             </button>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {!selectedSetId ? (
