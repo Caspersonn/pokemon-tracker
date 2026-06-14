@@ -6,3 +6,4 @@
 - [ ] Create a name for the application (UnPulled, CardQuest, etc)
 - [x] Show newest sets first with date on the right top corner with gray background, format for date should be `Jan 1, 1999`
 - [x] Bookmark/like a pokemon card (Vague idea of what this means)
+- [ ] Scanning pokemon cards with instant recognition
