@@ -13,7 +13,7 @@ buildNpmPackage {
       && lib.cleanSourceFilter path type;
   };
 
-  npmDepsHash = "sha256-8SAXHMI7t/Dji5r0WWa74sOSAh8uFV8OwnSsew2P7AA=";
+  npmDepsHash = "sha256-xQ+NvV2LkWU/x8Sgb/6EKFLZVubjze/aRLXDzsiJwhk=";
 
   makeCacheWritable = true;
 
